@@ -17,8 +17,8 @@
 package grv.distributed.example.number.service;
 
 import grv.distributed.example.number.NumberPrinterWorkload;
-import grv.distributed.workload.context.SingleThreadedWorkloadContext;
 import grv.distributed.workload.Workload;
+import grv.distributed.workload.context.SingleThreadedWorkloadContext;
 import grv.distributed.workload.context.WorkloadContext;
 import grv.distributed.workload.context.WorkloadContextFactory;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class NumberPrinterWorkloadContextFactory implements WorkloadContextFacto
 
   @Override
   public WorkloadContext<NumberPrinterWorkload> createContext(Workload workload) {
-    return new SingleThreadedWorkloadContext(new NumberPrinterWorkloadRunnable((NumberPrinterWorkload) workload));
+    return new SingleThreadedWorkloadContext(new NumberPrinterMasterWorkloadRunnable((NumberPrinterWorkload) workload));
   }
 
 }

@@ -1,3 +1,6 @@
 scheduler:
   rebalance-interval: PT3s #60000
   rebalance-poll-interval: PT3s #10000
+logging:
+  pattern:
+    console: "${CONSOLE_LOG_PATTERN:%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%15.15t] %logger{39}:%L - %m%n}"

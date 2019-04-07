@@ -17,20 +17,20 @@
 package grv.distributed.example.number.service;
 
 import grv.distributed.example.number.NumberPrinterWorkload;
-import grv.distributed.workload.runnable.AbstractWorkloadRunnable;
+import grv.distributed.workload.runnable.ChildTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.stream.LongStream;
 
 @Slf4j
-public class NumberPrinterWorkloadRunnable extends AbstractWorkloadRunnable<NumberPrinterWorkload> {
+public class NumberPrinterChildWorkloadRunnable extends ChildTask<NumberPrinterWorkload> {
 
   /**
    * Constructor.
    *
    * @param workload Workload that this runnable services.
    */
-  public NumberPrinterWorkloadRunnable(NumberPrinterWorkload workload) {
+  public NumberPrinterChildWorkloadRunnable(NumberPrinterWorkload workload) {
     super(workload);
   }
 

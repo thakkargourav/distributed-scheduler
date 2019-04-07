@@ -17,12 +17,12 @@
 package grv.distributed.example.number.service;
 
 import grv.distributed.example.number.NumberPrinterWorkload;
-import grv.distributed.workload.repository.source.MasterWorkloadRepositorySource;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
+import grv.distributed.workload.repository.source.WorkloadRepositorySource;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * For demonstration purposes, simply returns the static list of workloads to run.
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
  * from a database or some other service.
  */
 @Service
-public class NumberPrinterRepositorySource extends MasterWorkloadRepositorySource<NumberPrinterWorkload> {
+public class NumberPrinterRepositorySource implements WorkloadRepositorySource<NumberPrinterWorkload> {
 
   private final Set<NumberPrinterWorkload> workloads;
 
@@ -38,21 +38,15 @@ public class NumberPrinterRepositorySource extends MasterWorkloadRepositorySourc
     this.workloads = new HashSet<>();
   }
 
-  public void add(NumberPrinterWorkload workload) {
-    this.workloads.add(workload);
+  @Override
+  public void addWorkLoads(List<NumberPrinterWorkload> workloads) {
+    this.workloads.addAll(workloads);
   }
 
   @Override
-  public Stream<NumberPrinterWorkload> queryMasterWorkloads() {
+  public final Set<NumberPrinterWorkload> queryWorkloads() {
     Set<NumberPrinterWorkload> workloads = new HashSet<>(this.workloads);
     this.workloads.clear();
-    return workloads.stream();
-  }
-
-  @Override
-  protected Stream<NumberPrinterWorkload> breakDown(NumberPrinterWorkload request) {
-    return LongStream.range(request.getBegin(), request.getEnd())
-        .boxed()
-        .map(a -> new NumberPrinterWorkload(a, a));
+    return workloads;
   }
 }

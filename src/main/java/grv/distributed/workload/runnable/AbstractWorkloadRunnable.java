@@ -16,15 +16,24 @@
 
 package grv.distributed.workload.runnable;
 
+import com.hazelcast.spring.context.SpringAware;
 import grv.distributed.RunningState;
 import grv.distributed.workload.Workload;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
+
+import java.io.Serializable;
 
 /**
  * A base implementation of {@link WorkloadRunnable} that provides most of the functionality
  * of how a concrete implementation should behave, besides the actual logic of running the workload.
  */
-public abstract class AbstractWorkloadRunnable<T extends Workload> implements WorkloadRunnable<T> {
+@SpringAware
+public abstract class AbstractWorkloadRunnable<T extends Workload> implements WorkloadRunnable<T>,
+    ApplicationContextAware, Serializable {
   /**
    * Workload.
    */
@@ -57,10 +66,9 @@ public abstract class AbstractWorkloadRunnable<T extends Workload> implements Wo
     try {
       execute();
       setRunningState(RunningState.STOPPED);
-    } catch (InterruptedException ignored){
+    } catch (InterruptedException ignored) {
       setRunningState(RunningState.STOPPED);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       setException(e);
       setRunningState(RunningState.ERROR);
     }
@@ -125,5 +133,15 @@ public abstract class AbstractWorkloadRunnable<T extends Workload> implements Wo
    */
   protected void setException(Throwable throwable) {
     this.throwable = throwable;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    AutowireCapableBeanFactory beanFactory = applicationContext.getAutowireCapableBeanFactory();
+    beanFactory.autowireBean(this);
+    beanFactory.initializeBean(this, this.getClass().getName());
   }
 }

@@ -20,6 +20,8 @@ import grv.distributed.workload.Workload;
 import grv.distributed.workload.repository.CachingWorkloadRepository;
 import grv.distributed.workload.repository.WorkloadRepository;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -40,5 +42,14 @@ import java.util.Set;
 public interface WorkloadRepositorySource<T extends Workload> {
 
   Set<T> queryWorkloads();
+
+  void addWorkLoads(List<T> workloads);
+
+  default void addWorkLoads(T... workloads) {
+    List<T> ts = Arrays.asList(workloads);
+    addWorkLoads(ts);
+  }
+
+
 
 }

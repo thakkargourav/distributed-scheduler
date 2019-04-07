@@ -20,6 +20,7 @@ import grv.distributed.workload.repository.source.WorkloadRepositorySource;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -41,5 +42,10 @@ public class ExampleWorkloadRepositorySource implements WorkloadRepositorySource
   @Override
   public Set<ExampleWorkload> queryWorkloads() {
     return workloads;
+  }
+
+  @Override
+  public void addWorkLoads(List<ExampleWorkload> workloads) {
+    workloads.addAll(workloads);
   }
 }

@@ -14,7 +14,7 @@ public class SchedulerController {
 
   @GetMapping("schedule")
   public void test(long begin, long end) {
-    numberPrinterRepositorySource.add(new NumberPrinterWorkload(begin, end));
+    numberPrinterRepositorySource.addWorkLoads(new NumberPrinterWorkload(begin, end));
   }
 
 }
