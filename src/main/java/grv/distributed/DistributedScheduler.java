@@ -7,32 +7,31 @@ import grv.distributed.instruction.ShutdownInstruction;
 import grv.distributed.instruction.WorkloadActionsInstruction;
 import grv.distributed.locks.DistributedLock;
 import grv.distributed.locks.DistributedLockProvider;
-import grv.distributed.strategy.SchedulerStrategy;
+import grv.distributed.strategy.Strategy;
 import grv.distributed.workload.Workload;
 import grv.distributed.workload.WorkloadReport;
-import grv.distributed.workload.repository.WorkloadRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
  * The distributed scheduler is responsible for managing load balance scheduling and
  * instruction submission to cluster members. The actual load balancing logic is provided
- * by a {@link SchedulerStrategy} implementation.
+ * by a {@link Strategy} implementation.
  */
 @Service
 @Slf4j
 public class DistributedScheduler implements DisposableBean {
   /**
-   * Name of the distributed property holding the time the next schedule should occur.
+   * Name of the distributed property holding the time the next rebalance should occur.
    */
-  private final static String SCHEDULE_TIME_KEY = "distributed-schedule-time";
+  private final static String SCHEDULE_TIME_KEY = "distributed-rebalance-time";
 
   /**
    * Distributed lock provider.
@@ -52,12 +51,8 @@ public class DistributedScheduler implements DisposableBean {
   /**
    * Workload scheduler strategy.
    */
-  private final SchedulerStrategy schedulerStrategy;
+  private final Strategy strategy;
 
-  /**
-   * Workload repository.
-   */
-  private final WorkloadRepository workloadRepository;
 
   /**
    * Constructor.
@@ -65,51 +60,76 @@ public class DistributedScheduler implements DisposableBean {
    * @param distributedLockProvider Distributed lock provider.
    * @param clusterManager          Cluster manager.
    * @param schedulerProperties     Scheduler configuration properties.
-   * @param schedulerStrategy       Strategy implementation used by the scheduler to load balancer the cluster.
-   * @param workloadRepository      Workload repository.
+   * @param strategy                Strategy implementation used by the scheduler to load balancer the cluster.
    */
   public DistributedScheduler(
       DistributedLockProvider distributedLockProvider,
       ClusterManager clusterManager,
       SchedulerProperties schedulerProperties,
-      SchedulerStrategy schedulerStrategy,
-      WorkloadRepository workloadRepository
+      Strategy strategy
   ) {
     this.distributedLockProvider = distributedLockProvider;
     this.clusterManager = clusterManager;
     this.schedulerProperties = schedulerProperties;
-    this.schedulerStrategy = schedulerStrategy;
-    this.workloadRepository = workloadRepository;
+    this.strategy = strategy;
+  }
+
+
+  public <T extends Workload> void add(T... workloads) {
+    add(Arrays.asList(workloads));
+  }
+
+  public void add(List<? extends Workload> workloads) {
+    DistributedLock lock = distributedLockProvider.getDistributedLock("distributed-scheduler-lock");
+    try {
+      lock.lockInterruptibly();
+    } catch (InterruptedException ignored) {
+      Thread.currentThread().interrupt();
+      lock.unlock();
+      return;
+    }
+
+    try {
+      Map<ClusterMember, WorkloadReport> reports = clusterManager.submitInstruction(new ReportInstruction());
+      if (reports.size() == 0) {
+        throw new IllegalStateException("received no workload reports from any cluster member nodes");
+      }
+
+      List<Map<ClusterMember, WorkloadActionsInstruction>> instructions = strategy.add(reports, workloads);
+
+      for (Map<ClusterMember, WorkloadActionsInstruction> instructionSet : instructions) {
+        clusterManager.submitInstructions(instructionSet);
+      }
+
+    } catch (Exception e) {
+      log.error("unexpected exception encountered while scheduling workloads", e);
+    } finally {
+      lock.unlock();
+    }
   }
 
   /**
    * Attempt to conduct a non-forceful scheduling.
    */
   @Scheduled(fixedDelayString = "${scheduler.rebalance-poll-interval:PT3s}",
-             initialDelayString = "${scheduler.rebalance-poll-delay:PT3s}")
-  public void schedule() {
-    schedule(false);
+      initialDelayString = "${scheduler.rebalance-poll-delay:PT3s}")
+  public void rebalance() {
+    rebalance(false);
   }
 
   /**
    * Conducts a workload scheduling.
    *
-   * @param force If true, will disregard the time check and schedule now.
+   * @param force If true, will disregard the time check and rebalance now.
    */
-  public void schedule(boolean force) {
+  public void rebalance(boolean force) {
     /* TODO: lock name configurable? */
     DistributedLock lock = distributedLockProvider.getDistributedLock("distributed-scheduler-lock");
 
     // TODO: configurable?
     try {
-      if (lock.supportsLeases()) {
-        if (!lock.tryLock(0, TimeUnit.MILLISECONDS, 10, TimeUnit.MINUTES)) {
-          return;
-        }
-      } else {
-        if (!lock.tryLock(0, TimeUnit.MILLISECONDS)) {
-          return;
-        }
+      if (!lock.tryLock(0, TimeUnit.MILLISECONDS)) {
+        return;
       }
 
       if (!force && !isTimeToSchedule()) {
@@ -118,23 +138,17 @@ public class DistributedScheduler implements DisposableBean {
       }
     } catch (InterruptedException ignored) {
       Thread.currentThread().interrupt();
-      if (!lock.supportsLeases() || (lock.supportsLeases() && lock.isLocked())) {
-        lock.unlock();
-      }
+      lock.unlock();
       return;
     }
 
     try {
-      Set<Workload> registeredWorkloads = workloadRepository.getWorkloads();
-
       Map<ClusterMember, WorkloadReport> reports = clusterManager.submitInstruction(new ReportInstruction());
       if (reports.size() == 0) {
         throw new IllegalStateException("received no workload reports from any cluster member nodes");
       }
 
-      List<Map<ClusterMember, WorkloadActionsInstruction>> instructions = schedulerStrategy.schedule(
-          registeredWorkloads,
-          reports);
+      List<Map<ClusterMember, WorkloadActionsInstruction>> instructions = strategy.rebalance(reports);
 
       for (Map<ClusterMember, WorkloadActionsInstruction> instructionSet : instructions) {
         clusterManager.submitInstructions(instructionSet);
@@ -150,18 +164,18 @@ public class DistributedScheduler implements DisposableBean {
   }
 
   /**
-   * Determines if it's time to schedule workloads.
+   * Determines if it's time to rebalance workloads.
    *
-   * @return whether it's time to schedule workloads.
+   * @return whether it's time to rebalance workloads.
    */
   private boolean isTimeToSchedule() {
     return System.currentTimeMillis() >= getScheduleTime();
   }
 
   /**
-   * Returns the time the next schedule should occur.
+   * Returns the time the next rebalance should occur.
    *
-   * @return The time the next schedule should occur.
+   * @return The time the next rebalance should occur.
    */
   private long getScheduleTime() {
     Long time = clusterManager.getProperty(SCHEDULE_TIME_KEY, Long.class);
@@ -174,9 +188,9 @@ public class DistributedScheduler implements DisposableBean {
   }
 
   /**
-   * Sets the time the next schedule should occur.
+   * Sets the time the next rebalance should occur.
    *
-   * @param time The time the next schedule should occur.
+   * @param time The time the next rebalance should occur.
    */
   private void setScheduleTime(long time) {
     clusterManager.setProperty(SCHEDULE_TIME_KEY, time);

@@ -13,17 +13,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * A base implementation of {@link SchedulerStrategy} that primarily provides a set of
+ * A base implementation of {@link Strategy} that primarily provides a set of
  * helper methods for manipulating workload assignments between cluster members.
  */
-public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
+public abstract class AbstractStrategy implements Strategy {
   /**
    * Removes the given workload regardless of what cluster member it's on.
    *
    * @param context  Scheduler strategy context.
    * @param workload Workload of the action.
    */
-  protected void removeWorkload(SchedulerStrategyContext context, Workload workload) {
+  protected void removeWorkload(StrategyContext context, Workload workload) {
     for (ClusterMember clusterMember : context.getMapping().keySet()) {
       if (context.getMapping()
           .get(clusterMember)
@@ -42,7 +42,7 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
    * @param clusterMember Cluster member to add the action to.
    * @param workload      Workload of the action.
    */
-  protected void removeWorkload(SchedulerStrategyContext context,
+  protected void removeWorkload(StrategyContext context,
                                 ClusterMember clusterMember,
                                 Workload workload) {
     context.getMapping()
@@ -60,11 +60,11 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
    * @param workload      Workload of the action.
    * @param actionType    Action to perform.
    */
-  protected void addAction(SchedulerStrategyContext context,
+  protected void addAction(StrategyContext context,
                            ClusterMember clusterMember,
                            Workload workload,
                            ActionType actionType) {
-    addAction(context, clusterMember, new SchedulerAction(workload, actionType));
+    addAction(context, clusterMember, new Action(workload, actionType));
   }
 
   /**
@@ -74,9 +74,9 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
    * @param clusterMember Cluster member to add the action to.
    * @param action        Workload action to perform.
    */
-  protected void addAction(SchedulerStrategyContext context,
+  protected void addAction(StrategyContext context,
                            ClusterMember clusterMember,
-                           SchedulerAction action) {
+                           Action action) {
     if (!context.getActions().containsKey(clusterMember)) {
       context.getActions().put(clusterMember, new ArrayList<>());
     }
@@ -91,10 +91,21 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
    * @param clusterMember Cluster member to add the action to.
    * @param workload      Workload of the action.
    */
-  protected void restartWorkload(SchedulerStrategyContext context,
+  protected void restartWorkload(StrategyContext context,
                                  ClusterMember clusterMember,
                                  Workload workload) {
     addAction(context, clusterMember, workload, ActionType.RESTART);
+  }
+
+  /**
+   * Adds the given workload to the least busy cluster member.
+   *
+   * @param context  Scheduler strategy context.
+   * @param workload Workload of the action.
+   */
+  protected void addWorkload(StrategyContext context,
+                             Workload workload) {
+    addWorkload(context, findLeastBusyMember(context).getKey(), workload);
   }
 
   /**
@@ -104,7 +115,7 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
    * @param clusterMember Cluster member to add the action to.
    * @param workload      Workload of the action.
    */
-  protected void addWorkload(SchedulerStrategyContext context,
+  protected void addWorkload(StrategyContext context,
                              ClusterMember clusterMember,
                              Workload workload) {
     context.getMapping()
@@ -127,6 +138,21 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
   }
 
   /**
+   * Finds the cluster member with the least amount of load.
+   *
+   * @param context Scheduler strategy context.
+   * @return the cluster member with the least amount of load.
+   */
+  protected Map.Entry<? extends ClusterMember, WorkloadReport> findLeastBusyMember(
+      StrategyContext context) {
+    return context.getMapping()
+        .entrySet()
+        .stream()
+        .min(Comparator.comparing(entry -> entry.getValue().getEntries().size()))
+        .orElse(null);
+  }
+
+  /**
    * Returns a collection of instruction mappings resulting from a scheduling/re-balancing operation.
    * <p>
    * This method compiles instructions into two sets: first removals, and then start/restart. This
@@ -135,12 +161,11 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
    * @param context Scheduler strategy context.
    * @return a collection of instructing  mappings suitable for submission to cluster members.
    */
-  protected List<Map<ClusterMember, WorkloadActionsInstruction>> toInstructionMap(
-      SchedulerStrategyContext context) {
+  protected List<Map<ClusterMember, WorkloadActionsInstruction>> toInstructionMap(StrategyContext context) {
     List<Map<ClusterMember, WorkloadActionsInstruction>> compiled = new ArrayList<>();
 
     Map<ClusterMember, WorkloadActionsInstruction> instructions = compileInstructions(context,
-                                                                                      ActionType.REMOVE);
+        ActionType.REMOVE);
 
     if (instructions.size() > 0) {
       compiled.add(instructions);
@@ -163,24 +188,24 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
    * @return a mapping of cluster members to action instructions based on the given operation types.
    */
   private Map<ClusterMember, WorkloadActionsInstruction> compileInstructions(
-      SchedulerStrategyContext context,
+      StrategyContext context,
       ActionType... filter) {
     List<ActionType> filterList = Arrays.asList(filter);
 
     Map<ClusterMember, WorkloadActionsInstruction> instructions = new HashMap<>();
 
     for (ClusterMember clusterMember : context.getActions().keySet()) {
-      List<SchedulerAction> schedulerActions = context.getActions().get(clusterMember);
+      List<Action> actions = context.getActions().get(clusterMember);
 
-      if (schedulerActions == null || schedulerActions.size() == 0) {
+      if (actions == null || actions.size() == 0) {
         continue;
       }
 
-      List<SchedulerAction> actionsList = new ArrayList<>();
+      List<Action> actionsList = new ArrayList<>();
 
-      for (SchedulerAction schedulerAction : schedulerActions) {
-        if (filterList.contains(schedulerAction.getActionType())) {
-          actionsList.add(schedulerAction);
+      for (Action action : actions) {
+        if (filterList.contains(action.getActionType())) {
+          actionsList.add(action);
         }
       }
 
@@ -190,6 +215,21 @@ public abstract class AbstractSchedulerStrategy implements SchedulerStrategy {
     }
 
     return instructions;
+  }
+
+  /**
+   * Finds the cluster member with the most amount of load.
+   *
+   * @param context Scheduler strategy context.
+   * @return the cluster member with the most amount of load.
+   */
+  protected Map.Entry<? extends ClusterMember, WorkloadReport> findMostBusyMember(
+      StrategyContext context) {
+    return context.getMapping()
+        .entrySet()
+        .stream()
+        .max(Comparator.comparing(entry -> entry.getValue().getEntries().size()))
+        .orElse(null);
   }
 
   /**

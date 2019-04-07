@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * Contains an individual action to perform on a specific workload.
  */
-public class SchedulerAction implements Serializable {
+public class Action implements Serializable {
   /**
    * The workload to act on.
    */
@@ -27,7 +27,7 @@ public class SchedulerAction implements Serializable {
    * @param workload   workload the action should be taken on.
    * @param actionType action to take.
    */
-  public SchedulerAction(Workload workload, ActionType actionType) {
+  public Action(Workload workload, ActionType actionType) {
     this.workload = workload;
     this.actionType = actionType;
   }

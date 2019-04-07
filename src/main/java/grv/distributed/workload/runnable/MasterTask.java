@@ -1,8 +1,8 @@
 package grv.distributed.workload.runnable;
 
+import grv.distributed.DistributedScheduler;
 import grv.distributed.workload.ChildWorkload;
 import grv.distributed.workload.MasterWorkload;
-import grv.distributed.workload.repository.source.WorkloadRepositorySource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -11,7 +11,7 @@ public abstract class MasterTask<M extends MasterWorkload, C extends ChildWorklo
 
 
   @Autowired
-  private transient WorkloadRepositorySource<C> childWorkLoadRepository;
+  private transient DistributedScheduler distributedScheduler;
 
   /**
    * Constructor.
@@ -25,7 +25,7 @@ public abstract class MasterTask<M extends MasterWorkload, C extends ChildWorklo
   @Override
   public void execute() {
     List<C> breakDowns = breakDown(getWorkload());
-    childWorkLoadRepository.addWorkLoads(breakDowns);
+    distributedScheduler.add(breakDowns);
   }
 
   protected abstract List<C> breakDown(M workload);

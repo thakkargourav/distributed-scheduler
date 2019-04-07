@@ -2,7 +2,7 @@
 
 package grv.distributed.instruction;
 
-import grv.distributed.strategy.SchedulerAction;
+import grv.distributed.strategy.Action;
 import grv.distributed.workload.Workload;
 import grv.distributed.workload.context.manager.WorkloadContextManager;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class WorkloadActionsInstruction implements Instruction<Boolean> {
   /**
    * Scheduler actions to perform.
    */
-  private final List<SchedulerAction> actions;
+  private final List<Action> actions;
 
   /**
    * Workload context manager.
@@ -33,7 +33,7 @@ public class WorkloadActionsInstruction implements Instruction<Boolean> {
    *
    * @param actions the scheduler actions to perform.
    */
-  public WorkloadActionsInstruction(List<SchedulerAction> actions) {
+  public WorkloadActionsInstruction(List<Action> actions) {
     this.actions = actions;
   }
 
@@ -52,7 +52,7 @@ public class WorkloadActionsInstruction implements Instruction<Boolean> {
    *
    * @return the scheduler actions to perform.
    */
-  public List<SchedulerAction> getActions() {
+  public List<Action> getActions() {
     return actions;
   }
 
@@ -77,7 +77,7 @@ public class WorkloadActionsInstruction implements Instruction<Boolean> {
       return !workloadContextManager.isServicing(a.getWorkload());
     });
 
-    for (SchedulerAction action : actions) {
+    for (Action action : actions) {
       Workload workload = action.getWorkload();
 
       try {

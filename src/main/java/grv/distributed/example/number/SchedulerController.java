@@ -1,7 +1,7 @@
 package grv.distributed.example.number;
 
+import grv.distributed.DistributedScheduler;
 import grv.distributed.example.number.master.NumberPrinterMasterWorkload;
-import grv.distributed.example.number.master.service.NumberPrinterMasterRepositorySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class SchedulerController {
 
   @Autowired
-  private NumberPrinterMasterRepositorySource numberPrinterMasterRepositorySource;
+  private DistributedScheduler distributedScheduler;
 
 
   @GetMapping("schedule")
   public void test(long begin, long end) {
-    numberPrinterMasterRepositorySource.addWorkLoads(new NumberPrinterMasterWorkload(begin, end));
+    distributedScheduler.add(new NumberPrinterMasterWorkload(begin, end));
   }
 
 }

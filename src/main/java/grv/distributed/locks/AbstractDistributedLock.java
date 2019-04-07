@@ -8,11 +8,6 @@ import java.util.concurrent.locks.Lock;
 /**
  * A base implementation of a {@link DistributedLock} useful for implementation which merely
  * wrap an existing {@link Lock}.
- * <p>
- * The methods {@link #tryLock(long, TimeUnit)}, {@link #lock(long, TimeUnit)},
- * {@link #isLocked()}, and {@link #supportsLeases()} are not part of the base {@link Lock} interface, and will
- * throw {@link UnsupportedOperationException} when called (exception for {@code supportsLeases()}, which
- * returns false). Implementations that wish to use these methods may simply override them.
  */
 public class AbstractDistributedLock implements DistributedLock {
   /**
@@ -38,24 +33,6 @@ public class AbstractDistributedLock implements DistributedLock {
     return lock;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void lock(long leaseTime, TimeUnit timeUnit) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean tryLock(long waitTime,
-                         TimeUnit waitTimeUnit,
-                         long leaseTime,
-                         TimeUnit leaseTimeUnit) throws InterruptedException {
-    throw new UnsupportedOperationException();
-  }
 
   /**
    * {@inheritDoc}
@@ -65,13 +42,6 @@ public class AbstractDistributedLock implements DistributedLock {
     throw new UnsupportedOperationException();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean supportsLeases() {
-    return false;
-  }
 
   /**
    * {@inheritDoc}

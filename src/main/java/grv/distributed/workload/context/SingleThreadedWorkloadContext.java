@@ -61,9 +61,7 @@ public class SingleThreadedWorkloadContext<T extends Workload> implements Worklo
   @Override
   public void start() {
     if (thread != null) {
-      throw new IllegalStateException("context for workload "
-                                          + getWorkload().getUrn()
-                                          + " has already previously been started");
+      throw new IllegalStateException(String.format("context for workload %s has already previously been started", getWorkload().getUrn()));
     }
 
     thread = new Thread(runnable, "runnable-" + getWorkload().getUrn());
