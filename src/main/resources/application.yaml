@@ -1,0 +1,3 @@
+scheduler:
+  rebalance-interval: PT3s #60000
+  rebalance-poll-interval: PT3s #10000
