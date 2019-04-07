@@ -16,13 +16,11 @@
 
 package grv.distributed.example.number.service;
 
-import grv.distributed.RunningState;
 import grv.distributed.example.number.NumberPrinterWorkload;
 import grv.distributed.workload.runnable.AbstractWorkloadRunnable;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.stream.LongStream;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NumberPrinterWorkloadRunnable extends AbstractWorkloadRunnable<NumberPrinterWorkload> {
@@ -37,11 +35,9 @@ public class NumberPrinterWorkloadRunnable extends AbstractWorkloadRunnable<Numb
   }
 
   @Override
-  public void run() {
-    setRunningState(RunningState.RUNNING);
+  public void execute() {
     NumberPrinterWorkload workload = getWorkload();
     LongStream.range(workload.getBegin(), workload.getEnd() + 1)
         .forEach(number -> log.info("Number: {}", number));
-    setRunningState(RunningState.STOPPED);
   }
 }

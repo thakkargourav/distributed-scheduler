@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  * A base implementation of {@link WorkloadRunnable} that provides most of the functionality
  * of how a concrete implementation should behave, besides the actual logic of running the workload.
  */
-public abstract class AbstractWorkloadRunnable<T extends Workload> implements WorkloadRunnable {
+public abstract class AbstractWorkloadRunnable<T extends Workload> implements WorkloadRunnable<T> {
   /**
    * Workload.
    */
@@ -49,6 +49,25 @@ public abstract class AbstractWorkloadRunnable<T extends Workload> implements Wo
     Assert.notNull(workload, "workload must not be null");
     this.workload = workload;
   }
+
+
+  @Override
+  public void run() {
+    setRunningState(RunningState.RUNNING);
+    try {
+      execute();
+      setRunningState(RunningState.STOPPED);
+    } catch (InterruptedException ignored){
+      setRunningState(RunningState.STOPPED);
+    }
+    catch (Exception e) {
+      setException(e);
+      setRunningState(RunningState.ERROR);
+    }
+  }
+
+  public abstract void execute() throws InterruptedException;
+
 
   /**
    * {@inheritDoc}
