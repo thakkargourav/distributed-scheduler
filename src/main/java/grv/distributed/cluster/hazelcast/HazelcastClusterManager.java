@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class HazelcastClusterManager extends AbstractClusterManager implements InitializingBean {
   /**
-   * Name of the com.budjb.spring.lock.distributed map to store time markers.
+   * Name of the distributed map to store time markers.
    */
   private static final String HAZELCAST_MAP_NAME = "distributed-properties";
 

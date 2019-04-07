@@ -12,6 +12,7 @@ public class HazelcastConfiguration {
   public Config hazelCastConfig() {
     Config config = new Config();
     config.setInstanceName("hazelcast-instance");
+//    config.getGroupConfig().setName("hazelcast-instance-test");
     config.setManagedContext(managedContext());
     return config;
   }

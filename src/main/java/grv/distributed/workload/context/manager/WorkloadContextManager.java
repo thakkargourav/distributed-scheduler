@@ -74,20 +74,17 @@ public class WorkloadContextManager {
    */
   public WorkloadReport getWorkloadReport() {
     synchronized (this) {
-      // TODO: verify that the null entry problem is resolved, and change back to the stream
       WorkloadReport report = new WorkloadReport();
 
       for (WorkloadContext workloadContext : workloadContexts) {
-        if (workloadContext == null) {
+        if (null == workloadContext) {
           log.error("A workload context was null and skipped.");
           continue;
         }
 
         report.add(workloadContext.getWorkloadReportEntry());
       }
-
       return report;
-//            return new WorkloadReport(workloadContexts.stream().map(WorkloadContext::getWorkloadReportEntry).collect(Collectors.toList()));
     }
   }
 
@@ -115,8 +112,7 @@ public class WorkloadContextManager {
         do {
           futures.removeIf(Future::isDone);
           Thread.sleep(schedulerProperties.getActionPollInterval().toMillis());
-        }
-        while (futures.size() > 0);
+        } while (!futures.isEmpty());
       } catch (InterruptedException ignored) {
         Thread.currentThread().interrupt();
         log.error("Interrupted while stopping workloads");
@@ -183,7 +179,7 @@ public class WorkloadContextManager {
           return;
         } catch (ExecutionException e) {
           log.error("Unexpected execution exception while attempting to restart workload "
-              + workload.getUrn());
+                        + workload.getUrn());
           return;
         }
       }
@@ -214,7 +210,7 @@ public class WorkloadContextManager {
   public void start(Workload workload) {
     synchronized (this) {
       WorkloadContextFactory<?> factory = workloadContextFactorieByType.get(workload.getClass());
-      if (factory != null) {
+      if (null != factory) {
         WorkloadContext workloadContext = factory.createContext(workload);
         Assert.notNull(workloadContext,
             String.format("Workload context was null for workload %s using factory %s",

@@ -24,10 +24,11 @@ public class NumberPrinterMasterWorkloadRunnable extends MasterTask<NumberPrinte
   }
 
   @Override
-  protected List<NumberPrinterChildWorkload> breakDown(NumberPrinterMasterWorkload workload) {
+  protected List<NumberPrinterChildWorkload> breakDown(NumberPrinterMasterWorkload workload,
+                                                       String urn) {
     return LongStream.range(workload.getBegin(), workload.getEnd())
         .boxed()
-        .map(a -> new NumberPrinterChildWorkload(a, a))
+        .map(a -> new NumberPrinterChildWorkload(a, a, urn))
         .collect(Collectors.toList());
   }
 }

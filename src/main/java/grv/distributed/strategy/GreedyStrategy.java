@@ -1,9 +1,12 @@
 package grv.distributed.strategy;
 
+import com.hazelcast.core.HazelcastInstance;
 import grv.distributed.cluster.ClusterMember;
 import grv.distributed.instruction.WorkloadActionsInstruction;
 import grv.distributed.workload.Workload;
 import grv.distributed.workload.WorkloadReport;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,8 +18,13 @@ import java.util.stream.Collectors;
  * An implementation of a scheduler strategy that attempts to spread workloads evenly
  * across cluster members using a greedy algorithm.
  */
+@Slf4j
 @Service
 public class GreedyStrategy extends AbstractStrategy {
+
+  @Autowired
+  private HazelcastInstance hazelcastInstance;
+
   /**
    * {@inheritDoc}
    */
@@ -29,7 +37,7 @@ public class GreedyStrategy extends AbstractStrategy {
     Set<Workload> completedWorkloads = reports.values()
         .stream()
         .flatMap(report -> report.getEntries().stream())
-        .filter(e -> e.getError() == null)
+//        .filter(e -> null == e.getError())
         .filter(e -> e.getState().isTerminated())
         .map(WorkloadReport.Entry::getWorkload)
         .collect(Collectors.toSet());
@@ -60,13 +68,13 @@ public class GreedyStrategy extends AbstractStrategy {
     }
 
     // Restart failed workloads.
-    context.getMapping()
-        .forEach((k, v) -> v.getEntries()
-            .stream()
-            .filter(e -> e.getError() != null)
-            .map(WorkloadReport.Entry::getWorkload)
-            .distinct()
-            .forEach(w -> restartWorkload(context, k, w)));
+//    context.getMapping()
+//        .forEach((k, v) -> v.getEntries()
+//            .stream()
+//            .filter(e -> null != e.getError())
+//            .map(WorkloadReport.Entry::getWorkload)
+//            .distinct()
+//            .forEach(w -> restartWorkload(context, k, w)));
 
     return toInstructionMap(context);
   }

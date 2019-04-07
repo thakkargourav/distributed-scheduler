@@ -89,7 +89,7 @@ public abstract class Workload implements Serializable {
   @Override
   public int hashCode() {
     int result;
-    result = (getUrn() != null ? getUrn().hashCode() : 0);
+    result = (null != getUrn() ? getUrn().hashCode() : 0);
     return result;
   }
 }

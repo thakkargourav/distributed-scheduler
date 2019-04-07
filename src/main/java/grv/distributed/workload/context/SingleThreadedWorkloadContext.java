@@ -1,5 +1,3 @@
-
-
 package grv.distributed.workload.context;
 
 import grv.distributed.RunningState;
@@ -43,7 +41,7 @@ public class SingleThreadedWorkloadContext<T extends Workload> implements Worklo
   public WorkloadReport.Entry getWorkloadReportEntry() {
     return new WorkloadReport.Entry(getWorkload(),
                                     runnable.getRunningState(),
-                                    runnable.getException() != null ? runnable.getException()
+                                    null != runnable.getException() ? runnable.getException()
                                         .getMessage() : null);
   }
 
@@ -61,7 +59,9 @@ public class SingleThreadedWorkloadContext<T extends Workload> implements Worklo
   @Override
   public void start() {
     if (thread != null) {
-      throw new IllegalStateException(String.format("context for workload %s has already previously been started", getWorkload().getUrn()));
+      throw new IllegalStateException(String.format(
+          "context for workload %s has already previously been started",
+          getWorkload().getUrn()));
     }
 
     thread = new Thread(runnable, "runnable-" + getWorkload().getUrn());
