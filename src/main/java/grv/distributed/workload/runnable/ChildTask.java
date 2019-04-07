@@ -1,8 +1,8 @@
 package grv.distributed.workload.runnable;
 
-import grv.distributed.workload.Workload;
+import grv.distributed.workload.ChildWorkload;
 
-public abstract class ChildTask<T extends Workload> extends AbstractWorkloadRunnable<T>{
+public abstract class ChildTask<T extends ChildWorkload> extends AbstractWorkloadRunnable<T> {
   /**
    * Constructor.
    *

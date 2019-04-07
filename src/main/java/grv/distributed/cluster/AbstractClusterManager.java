@@ -1,15 +1,13 @@
 package grv.distributed.cluster;
 
+import grv.distributed.instruction.Instruction;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import grv.distributed.instruction.Instruction;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A (slightly opinionated) base implementation of {@link ClusterManager}. This implementation assumes that

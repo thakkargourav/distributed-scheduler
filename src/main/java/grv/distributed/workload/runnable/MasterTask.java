@@ -1,12 +1,13 @@
 package grv.distributed.workload.runnable;
 
-import grv.distributed.workload.Workload;
+import grv.distributed.workload.ChildWorkload;
+import grv.distributed.workload.MasterWorkload;
 import grv.distributed.workload.repository.source.WorkloadRepositorySource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public abstract class MasterTask<M extends Workload, C extends Workload> extends AbstractWorkloadRunnable<M> {
+public abstract class MasterTask<M extends MasterWorkload, C extends ChildWorkload> extends AbstractWorkloadRunnable<M> {
 
 
   @Autowired
@@ -28,4 +29,5 @@ public abstract class MasterTask<M extends Workload, C extends Workload> extends
   }
 
   protected abstract List<C> breakDown(M workload);
+
 }

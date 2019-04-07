@@ -1,13 +1,14 @@
 package grv.distributed.cluster.hazelcast;
 
-import grv.distributed.instruction.Instruction;
 import com.hazelcast.spring.context.SpringAware;
-import java.io.Serializable;
-import java.util.concurrent.Callable;
+import grv.distributed.instruction.Instruction;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+
+import java.io.Serializable;
+import java.util.concurrent.Callable;
 
 /**
  * A wrapper for an {@link Instruction} that adds the Hazelcast annotation to

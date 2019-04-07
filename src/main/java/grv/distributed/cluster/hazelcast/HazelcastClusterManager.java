@@ -1,21 +1,21 @@
 package grv.distributed.cluster.hazelcast;
 
-import grv.distributed.instruction.Instruction;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IExecutorService;
 import com.hazelcast.core.Member;
 import com.hazelcast.core.MemberSelector;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
 import grv.distributed.cluster.AbstractClusterManager;
 import grv.distributed.cluster.ClusterConfigurationProperties;
 import grv.distributed.cluster.ClusterManager;
 import grv.distributed.cluster.ClusterMember;
+import grv.distributed.instruction.Instruction;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * A {@link ClusterManager} implementation backed by Hazelcast.

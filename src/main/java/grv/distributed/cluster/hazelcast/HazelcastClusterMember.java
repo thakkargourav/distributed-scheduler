@@ -1,7 +1,7 @@
 package grv.distributed.cluster.hazelcast;
 
-import grv.distributed.cluster.ClusterMember;
 import com.hazelcast.core.Member;
+import grv.distributed.cluster.ClusterMember;
 
 /**
  * A cluster member backed by Hazelcast.
