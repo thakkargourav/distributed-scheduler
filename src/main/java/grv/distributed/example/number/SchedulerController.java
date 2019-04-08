@@ -38,7 +38,7 @@ public class SchedulerController {
     long time = cronExpression.getNextValidTimeAfter(Date.from(Instant.now())).getTime();
     JobDetail job = buildJob("addWork" + time + begin + end, DEFAULT_GROUP, AddWorkload.class, begin, end);
     Trigger trigger = buildTrigger("key" + time + begin + end, DEFAULT_GROUP, job, time);
-        scheduler.scheduleJob(job, trigger);
+    scheduler.scheduleJob(job, trigger);
     log.info("scheduled: {}, with trigger: {}", job, trigger);
   }
 

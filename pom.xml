@@ -50,6 +50,23 @@
       <artifactId>hazelcast-all</artifactId>
       <version>3.11.2</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.bikeemotion</groupId>
+      <artifactId>quartz-hazelcast-jobstore</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>
