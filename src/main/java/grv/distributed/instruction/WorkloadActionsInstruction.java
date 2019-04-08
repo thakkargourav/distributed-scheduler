@@ -83,27 +83,27 @@ public class WorkloadActionsInstruction implements Instruction<Boolean> {
       try {
         switch (action.getActionType()) {
           case ADD:
-            log.info("Adding workload " + workload + " to node");
+            log.debug("Adding workload " + workload + " to node");
             workloadContextManager.start(workload);
             break;
 
           case STOP:
-            log.info("Stopping workload " + workload + " on node");
+            log.debug("Stopping workload " + workload + " on node");
             futures.add(workloadContextManager.stop(workload));
             break;
 
           case REMOVE:
-            log.info("Removing workload " + workload + " from node");
+            log.debug("Removing workload " + workload + " from node");
             futures.add(workloadContextManager.remove(workload));
             break;
 
           case RESTART:
-            log.info("Restarting workload " + workload + " on node");
+            log.debug("Restarting workload " + workload + " on node");
             futures.add(workloadContextManager.restart(workload));
             break;
 
           case FAIL:
-            log.info("Failing workload " + workload + " on node");
+            log.debug("Failing workload " + workload + " on node");
             workloadContextManager.fail(workload);
             break;
 

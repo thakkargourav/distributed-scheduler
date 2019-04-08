@@ -37,7 +37,6 @@ public class GreedyStrategy extends AbstractStrategy {
     Set<Workload> completedWorkloads = reports.values()
         .stream()
         .flatMap(report -> report.getEntries().stream())
-//        .filter(e -> null == e.getError())
         .filter(e -> e.getState().isTerminated())
         .map(WorkloadReport.Entry::getWorkload)
         .collect(Collectors.toSet());
@@ -45,8 +44,10 @@ public class GreedyStrategy extends AbstractStrategy {
 
     completedWorkloads.forEach(w -> removeWorkload(context, w));
 
+
+    //Not required
     // Distribute workload from over-burdened cluster members to others with low load.
-    while (true) {
+    /*while (true) {
       Map.Entry<? extends ClusterMember, WorkloadReport> low = findLeastBusyMember(context);
       Map.Entry<? extends ClusterMember, WorkloadReport> high = findMostBusyMember(context);
 
@@ -65,16 +66,9 @@ public class GreedyStrategy extends AbstractStrategy {
 
       removeWorkload(context, high.getKey(), candidate);
       addWorkload(context, low.getKey(), candidate);
-    }
+    }*/
 
-    // Restart failed workloads.
-//    context.getMapping()
-//        .forEach((k, v) -> v.getEntries()
-//            .stream()
-//            .filter(e -> null != e.getError())
-//            .map(WorkloadReport.Entry::getWorkload)
-//            .distinct()
-//            .forEach(w -> restartWorkload(context, k, w)));
+
 
     return toInstructionMap(context);
   }

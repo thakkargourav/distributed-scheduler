@@ -8,14 +8,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class HazelcastConfiguration {
 
-  @Bean
-  public Config hazelCastConfig() {
-    Config config = new Config();
-    config.setInstanceName("hazelcast-instance");
-//    config.getGroupConfig().setName("hazelcast-instance-test");
-    config.setManagedContext(managedContext());
-    return config;
-  }
+    @Bean
+    public Config hazelCastConfig() {
+        Config config = new Config();
+      config.setInstanceName("hazelcast-instance-test-2");
+      config.getGroupConfig().setName("hazelcast-instance-test-2");
+        config.setManagedContext(managedContext());
+        return config;
+    }
 
   @Bean
   public SpringManagedContext managedContext() {

@@ -31,10 +31,13 @@ public abstract class MasterTask<M extends MasterWorkload, C extends ChildWorklo
 
   @Override
   public void run() {
+    log.info("Master task {} has started", getWorkload().getUrn());
     setRunningState(RunningState.RUNNING);
     try {
       String urn = getWorkload().getUrn();
       ICountDownLatch countDownLatch = hazelcastInstance.getCountDownLatch(urn);
+      countDownLatch.destroy();
+      hazelcastInstance.getMultiMap(ERROR_KEY_NAME).remove(urn);
       List<C> breakDowns = breakDown(getWorkload(), urn);
       boolean setCount = countDownLatch.trySetCount(breakDowns.size());
       if (!setCount) {
@@ -77,16 +80,19 @@ public abstract class MasterTask<M extends MasterWorkload, C extends ChildWorklo
 
     boolean errorsPresent = !errorChildUrns.isEmpty();
 
-    if (errorsPresent) {
-      log.error("Marking master: {} FAILED since some of children failed. Failed children: {}",
-                masterUrn,
-                errorChildUrns);
-    }
-
     if (0 == pendingTasks) {
       countDownLatch.destroy();
       errorMultimap.remove(masterUrn);
       runningState = errorsPresent ? RunningState.ERROR : RunningState.STOPPED;
+      if (errorsPresent) {
+        log.error("Marking master task: {} FAILED since some of children failed. Failed children: {}",
+                  masterUrn,
+                  errorChildUrns);
+      } else {
+        log.info("Marking master task: {} success.",
+            masterUrn);
+      }
+
     }
 
     return runningState;

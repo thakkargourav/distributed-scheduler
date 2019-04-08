@@ -18,31 +18,32 @@ public abstract class ChildTask<T extends ChildWorkload> extends AbstractWorkloa
 
   @Override
   public void run() {
+    log.info("Child task {} has started", getWorkload().getUrn());
     setRunningState(RunningState.RUNNING);
     try {
       execute();
       setRunningState(RunningState.STOPPED);
-    } catch (InterruptedException ignored) {
-      setRunningState(RunningState.STOPPED);
+      log.info("Child task {} marked completed", getWorkload().getUrn());
     } catch (Exception e) {
       setException(e);
-      addError();
+      addError(e);
       setRunningState(RunningState.ERROR);
+    } finally {
+      countDown();
     }
-    countDown();
   }
 
-  private synchronized void addError() {
+  private void addError(Exception e) {
     String masterUrn = getWorkload().getMasterUrn();
     String childUrn = getWorkload().getUrn();
     hazelcastInstance.getMultiMap("ERROR").put(masterUrn, childUrn);
-    log.info("Error occurred while processing child: {} for master: {}", childUrn, masterUrn);
+    log.error("Error occurred while processing child: {} for master: {}", childUrn, masterUrn, e);
   }
 
-  private synchronized void countDown() {
+  private void countDown() {
     String masterUrn = getWorkload().getMasterUrn();
     hazelcastInstance.getCountDownLatch(masterUrn).countDown();
     String urn = getWorkload().getUrn();
-    log.info("Decreasing count of master: {} for child: {}", masterUrn, urn);
+    log.debug("Decreasing count of master: {} for child: {}", masterUrn, urn);
   }
 }
